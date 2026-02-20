@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Focus — Tu espacio productivo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #080c14;
+    --surface: #0d1220;
+    --surface2: #111827;
+    --border: rgba(255,255,255,0.07);
+    --accent: #4f8ef7;
+    --accent2: #7c5cbf;
+    --accent3: #2de2b0;
+    --text: #e8eaf0;
+    --muted: #596070;
+    --danger: #ef4444;
+    --success: #22c55e;
+    --radius: 16px;
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    overflow-x: hidden;
+  }
+
+  /* ── BACKGROUND ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 10% 0%, rgba(79,142,247,0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 50% at 90% 100%, rgba(124,92,191,0.14) 0%, transparent 55%),
+      radial-gradient(ellipse 40% 40% at 50% 50%, rgba(45,226,176,0.04) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Grain */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  .wrapper {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 40px;
+    gap: 40px;
+  }
+
+  /* ── HEADER ── */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    animation: slideDown 0.6s ease both;
+  }
+
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.2rem;
+    letter-spacing: -0.02em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent3);
+    box-shadow: 0 0 10px var(--accent3);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(0.8); }
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .blocked-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 14px;
+    background: rgba(239,68,68,0.1);
+    border: 1px solid rgba(239,68,68,0.2);
+    border-radius: 100px;
+    font-size: 0.72rem;
+    color: #f87171;
+    letter-spacing: 0.06em;
+    font-weight: 500;
+  }
+
+  .blocked-badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #ef4444;
+  }
+
+  /* ── MAIN ── */
+  main {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 28px;
+    align-items: start;
+  }
+
+  /* ── CLOCK / HERO ── */
+  .hero {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    animation: fadeUp 0.7s ease both 0.1s;
+  }
+
+  .time-block {
+    display: flex;
+    flex-direction: column;
+  }
+
+  #clock {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(4rem, 10vw, 8rem);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    background: linear-gradient(135deg, #fff 30%, rgba(255,255,255,0.4));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  #date {
+    font-size: 0.95rem;
+    color: var(--muted);
+    font-weight: 300;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 8px;
+  }
+
+  /* Quote */
+  .quote-box {
+    padding: 20px 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    border-left: 3px solid var(--accent);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .quote-box::before {
+    content: '"';
+    position: absolute;
+    top: -10px;
+    left: 16px;
+    font-size: 6rem;
+    color: var(--accent);
+    opacity: 0.08;
+    font-family: Georgia, serif;
+    line-height: 1;
+    pointer-events: none;
+  }
+
+  #quote-text {
+    font-size: 0.95rem;
+    color: var(--text);
+    line-height: 1.65;
+    font-style: italic;
+    font-weight: 300;
+  }
+
+  #quote-author {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-top: 10px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+  }
+
+  /* Focus Mode */
+  .focus-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .focus-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .focus-label span {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .task-input-row {
+    display: flex;
+    gap: 10px;
+  }
+
+  .task-input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .task-input::placeholder { color: var(--muted); }
+  .task-input:focus { border-color: var(--accent); }
+
+  .btn {
+    padding: 12px 20px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.82rem;
+    letter-spacing: 0.05em;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  .btn-primary:hover {
+    background: #6fa3fa;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(79,142,247,0.35);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+
+  .btn-ghost:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  #focus-task-display {
+    padding: 12px 16px;
+    background: rgba(79,142,247,0.08);
+    border: 1px solid rgba(79,142,247,0.2);
+    border-radius: 10px;
+    font-size: 0.88rem;
+    color: var(--text);
+    display: none;
+    align-items: center;
+    gap: 10px;
+  }
+
+  #focus-task-display.active { display: flex; }
+
+  #focus-task-display::before {
+    content: '⚡';
+    font-size: 0.9rem;
+    flex-shrink: 0;
+  }
+
+  /* Pomodoro */
+  .pomodoro {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  #pomo-display {
+    font-family: 'Syne', sans-serif;
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--text);
+    min-width: 100px;
+  }
+
+  #pomo-display.work-mode { color: var(--accent3); }
+  #pomo-display.break-mode { color: var(--accent2); }
+
+  .pomo-mode-label {
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .pomo-actions { display: flex; gap: 8px; }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    animation: fadeUp 0.7s ease both 0.2s;
+  }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .panel-header {
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .panel-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+  }
+
+  .panel-action {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    font-size: 1rem;
+    transition: all 0.2s;
+    line-height: 1;
+  }
+
+  .panel-action:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Links */
+  #links-list {
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .link-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: transparent;
+    border: 1px solid transparent;
+    text-decoration: none;
+    color: var(--text);
+    transition: all 0.18s;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    group: true;
+  }
+
+  .link-item::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(79,142,247,0.07), transparent);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .link-item:hover::before { opacity: 1; }
+
+  .link-item:hover {
+    border-color: var(--border);
+    background: var(--surface2);
+    transform: translateX(3px);
+  }
+
+  .link-favicon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 0.85rem;
+    overflow: hidden;
+  }
+
+  .link-favicon img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+  }
+
+  .link-info { flex: 1; min-width: 0; }
+
+  .link-name {
+    font-size: 0.88rem;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .link-url {
+    font-size: 0.72rem;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 1px;
+  }
+
+  .link-delete {
+    opacity: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    background: rgba(239,68,68,0.1);
+    border: none;
+    color: #f87171;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+
+  .link-item:hover .link-delete { opacity: 1; }
+  .link-delete:hover { background: rgba(239,68,68,0.25); }
+
+  /* Add Link Modal */
+  #add-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(8,12,20,0.85);
+    backdrop-filter: blur(8px);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.2s ease;
+  }
+
+  #add-modal.open { display: flex; }
+
+  .modal-card {
+    background: var(--surface);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 32px;
+    width: 440px;
+    max-width: 90vw;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.6);
+    animation: scaleIn 0.25s ease;
+  }
+
+  .modal-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 800;
+    margin-bottom: 24px;
+    background: linear-gradient(135deg, #fff, rgba(255,255,255,0.5));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .modal-fields { display: flex; flex-direction: column; gap: 14px; }
+
+  .field-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .field-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .field-input::placeholder { color: var(--muted); }
+  .field-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(79,142,247,0.1); }
+
+  .emoji-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 6px;
+    margin-top: 6px;
+  }
+
+  .emoji-btn {
+    padding: 6px;
+    border-radius: 6px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    font-size: 1rem;
+    text-align: center;
+    transition: all 0.15s;
+  }
+
+  .emoji-btn:hover, .emoji-btn.selected {
+    background: rgba(79,142,247,0.15);
+    border-color: var(--accent);
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 24px;
+  }
+
+  /* Stats row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0;
+  }
+
+  .stat-item {
+    padding: 18px 16px;
+    text-align: center;
+    border-right: 1px solid var(--border);
+  }
+
+  .stat-item:last-child { border-right: none; }
+
+  .stat-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), var(--accent3));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: 0.68rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-top: 4px;
+  }
+
+  /* Footer */
+  footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    animation: fadeUp 0.7s ease both 0.4s;
+  }
+
+  .footer-text {
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  .motivation-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .pomo-dots {
+    display: flex;
+    gap: 5px;
+  }
+
+  .pomo-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: background 0.3s;
+  }
+
+  .pomo-dot.filled { background: var(--accent3); box-shadow: 0 0 6px var(--accent3); }
+
+  /* Keyframes */
+  @keyframes slideDown {
+    from { transform: translateY(-20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  @keyframes fadeUp {
+    from { transform: translateY(24px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes scaleIn {
+    from { transform: scale(0.94); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+
+  /* Notify toast */
+  #toast {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 10px 22px;
+    font-size: 0.82rem;
+    color: var(--text);
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 200;
+    pointer-events: none;
+    white-space: nowrap;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+
+  #toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  @media (max-width: 800px) {
+    .wrapper { padding: 20px; gap: 24px; }
+    main { grid-template-columns: 1fr; }
+    .sidebar { order: -1; }
+    #clock { font-size: 4rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrapper">
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo">
+      <div class="logo-dot"></div>
+      FOCUS
+    </div>
+    <div class="header-right">
+      <div class="blocked-badge">Sitio bloqueado — redirigido</div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main>
+
+    <!-- LEFT / HERO -->
+    <div class="hero">
+      <div class="time-block">
+        <div id="clock">00:00:00</div>
+        <div id="date">Cargando fecha...</div>
+      </div>
+
+      <!-- Quote -->
+      <div class="quote-box">
+        <div id="quote-text">La concentración es la raíz de todos los poderes del hombre.</div>
+        <div id="quote-author">— Bruce Lee</div>
+      </div>
+
+      <!-- Focus + Pomodoro -->
+      <div class="focus-card">
+        <div class="focus-label">Tarea de enfoque <span></span></div>
+
+        <div class="task-input-row">
+          <input class="task-input" id="task-input" type="text" placeholder="¿En qué te vas a enfocar hoy?" />
+          <button class="btn btn-primary" onclick="setTask()">Fijar</button>
+        </div>
+
+        <div id="focus-task-display" class=""></div>
+
+        <div class="focus-label" style="margin-top: 4px;">Pomodoro <span></span></div>
+        <div class="pomodoro">
+          <div>
+            <div id="pomo-display" class="work-mode">25:00</div>
+            <div class="pomo-mode-label" id="pomo-mode-label">Modo trabajo</div>
+          </div>
+          <div class="pomo-actions">
+            <button class="btn btn-primary" id="pomo-start-btn" onclick="togglePomo()">▶ Iniciar</button>
+            <button class="btn btn-ghost" onclick="resetPomo()">↺ Reset</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+
+      <!-- Stats -->
+      <div class="panel">
+        <div class="stats-row">
+          <div class="stat-item">
+            <div class="stat-value" id="stat-pomos">0</div>
+            <div class="stat-label">Pomodoros</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="stat-links">0</div>
+            <div class="stat-label">Links</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="stat-streak">0d</div>
+            <div class="stat-label">Racha</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Links -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Accesos rápidos</div>
+          <button class="panel-action" onclick="openModal()" title="Añadir link">+</button>
+        </div>
+        <div id="links-list"></div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-text" id="footer-blocked">Sitio bloqueado por tu regla de productividad ✦</div>
+    <div class="motivation-bar">
+      <span style="font-size:0.72rem;color:var(--muted);">Ciclos hoy</span>
+      <div class="pomo-dots" id="pomo-dots">
+        <div class="pomo-dot"></div>
+        <div class="pomo-dot"></div>
+        <div class="pomo-dot"></div>
+        <div class="pomo-dot"></div>
+      </div>
+    </div>
+  </footer>
+
+</div>
+
+<!-- ADD LINK MODAL -->
+<div id="add-modal">
+  <div class="modal-card">
+    <div class="modal-title">Añadir acceso rápido</div>
+    <div class="modal-fields">
+      <div>
+        <div class="field-label">Nombre</div>
+        <input class="field-input" id="new-name" type="text" placeholder="ej. UdeA Campus">
+      </div>
+      <div>
+        <div class="field-label">URL</div>
+        <input class="field-input" id="new-url" type="url" placeholder="https://...">
+      </div>
+      <div>
+        <div class="field-label">Ícono</div>
+        <div class="emoji-grid" id="emoji-grid"></div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="addLink()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────────
+const DEFAULT_LINKS = [
+  { id: 1, name: 'UdeA Campus', url: 'https://udearroba.udea.edu.co/internos/login/index.php?loginredirect=1', emoji: '🎓' },
+  { id: 2, name: 'Supabase', url: 'https://supabase.com/', emoji: '⚡' },
+  { id: 3, name: 'Gemini AI', url: 'https://gemini.google.com/u/2/app', emoji: '✨' },
+];
+
+const QUOTES = [
+  { text: 'La concentración es la raíz de todos los poderes del hombre.', author: 'Bruce Lee' },
+  { text: 'Haz hoy lo que otros no quieren, y mañana vivirás como otros no pueden.', author: 'Jerry Rice' },
+  { text: 'No cuentes los días, haz que los días cuenten.', author: 'Muhammad Ali' },
+  { text: 'La disciplina es el puente entre metas y logros.', author: 'Jim Rohn' },
+  { text: 'El éxito es la suma de pequeños esfuerzos repetidos día tras día.', author: 'Robert Collier' },
+  { text: 'Trabaja duro en silencio. Deja que el éxito haga el ruido.', author: 'Frank Ocean' },
+  { text: 'No te detengas cuando estés cansado. Detente cuando hayas terminado.', author: 'Anónimo' },
+  { text: 'El tiempo que disfrutas malgastando no es tiempo malgastado.', author: 'Bertrand Russell' },
+];
+
+const EMOJIS = ['📚', '💻', '🎯', '🚀', '⚡', '🔥', '✨', '🌟', '💡', '🛠️', '📊', '📝', '🎓', '🔬', '🎨', '🧠', '💪', '🌐', '📱', '🔗'];
+
+// ─── STATE ───────────────────────────────────────────────────
+let links = JSON.parse(localStorage.getItem('focus_links') || 'null') || DEFAULT_LINKS;
+let stats = JSON.parse(localStorage.getItem('focus_stats') || '{"pomos":0,"streak":0,"lastDay":""}') ;
+let focusTask = localStorage.getItem('focus_task') || '';
+let selectedEmoji = '🔗';
+
+// Pomodoro
+let pomoSeconds = 25 * 60;
+let pomoIsWork = true;
+let pomoRunning = false;
+let pomoInterval = null;
+
+// ─── CLOCK ────────────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2, '0');
+  const mm = String(now.getMinutes()).padStart(2, '0');
+  const ss = String(now.getSeconds()).padStart(2, '0');
+  document.getElementById('clock').textContent = `${hh}:${mm}:${ss}`;
+
+  const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+  const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+  document.getElementById('date').textContent =
+    `${days[now.getDay()]}, ${now.getDate()} de ${months[now.getMonth()]} ${now.getFullYear()}`;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ─── QUOTE ────────────────────────────────────────────────────
+const q = QUOTES[Math.floor(Math.random() * QUOTES.length)];
+document.getElementById('quote-text').textContent = q.text;
+document.getElementById('quote-author').textContent = '— ' + q.author;
+
+// ─── LINKS ────────────────────────────────────────────────────
+function saveLinks() {
+  localStorage.setItem('focus_links', JSON.stringify(links));
+  document.getElementById('stat-links').textContent = links.length;
+}
+
+function getFavicon(url) {
+  try {
+    const domain = new URL(url).hostname;
+    return `https://www.google.com/s2/favicons?sz=32&domain=${domain}`;
+  } catch { return null; }
+}
+
+function renderLinks() {
+  const container = document.getElementById('links-list');
+  container.innerHTML = '';
+  links.forEach(link => {
+    const item = document.createElement('a');
+    item.href = link.url;
+    item.target = '_blank';
+    item.rel = 'noopener noreferrer';
+    item.className = 'link-item';
+
+    const faviconUrl = getFavicon(link.url);
+    const faviconHtml = faviconUrl
+      ? `<img src="${faviconUrl}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" alt=""><span style="display:none">${link.emoji}</span>`
+      : `<span>${link.emoji}</span>`;
+
+    let displayUrl = '';
+    try { displayUrl = new URL(link.url).hostname; } catch { displayUrl = link.url; }
+
+    item.innerHTML = `
+      <div class="link-favicon">${faviconHtml}</div>
+      <div class="link-info">
+        <div class="link-name">${link.name}</div>
+        <div class="link-url">${displayUrl}</div>
+      </div>
+      <button class="link-delete" onclick="deleteLink(event, ${link.id})">✕</button>
+    `;
+    container.appendChild(item);
+  });
+  document.getElementById('stat-links').textContent = links.length;
+}
+
+function deleteLink(e, id) {
+  e.preventDefault();
+  e.stopPropagation();
+  links = links.filter(l => l.id !== id);
+  saveLinks();
+  renderLinks();
+  showToast('Link eliminado');
+}
+
+// ─── MODAL ────────────────────────────────────────────────────
+function openModal() {
+  document.getElementById('add-modal').classList.add('open');
+  document.getElementById('new-name').focus();
+}
+
+function closeModal() {
+  document.getElementById('add-modal').classList.remove('open');
+  document.getElementById('new-name').value = '';
+  document.getElementById('new-url').value = '';
+}
+
+function addLink() {
+  const name = document.getElementById('new-name').value.trim();
+  const url = document.getElementById('new-url').value.trim();
+  if (!name || !url) { showToast('⚠️ Nombre y URL son requeridos'); return; }
+  let safeUrl = url;
+  if (!url.startsWith('http://') && !url.startsWith('https://')) safeUrl = 'https://' + url;
+
+  const newLink = { id: Date.now(), name, url: safeUrl, emoji: selectedEmoji };
+  links.push(newLink);
+  saveLinks();
+  renderLinks();
+  closeModal();
+  showToast('✓ Link añadido correctamente');
+}
+
+// Emoji grid
+function renderEmojis() {
+  const grid = document.getElementById('emoji-grid');
+  grid.innerHTML = '';
+  EMOJIS.forEach(emoji => {
+    const btn = document.createElement('button');
+    btn.className = 'emoji-btn' + (emoji === selectedEmoji ? ' selected' : '');
+    btn.textContent = emoji;
+    btn.onclick = () => {
+      selectedEmoji = emoji;
+      document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+    };
+    grid.appendChild(btn);
+  });
+}
+
+// Close modal on backdrop click
+document.getElementById('add-modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('add-modal')) closeModal();
+});
+
+// ─── FOCUS TASK ────────────────────────────────────────────────
+function setTask() {
+  const val = document.getElementById('task-input').value.trim();
+  if (!val) { showToast('⚠️ Escribe tu tarea primero'); return; }
+  focusTask = val;
+  localStorage.setItem('focus_task', val);
+  document.getElementById('task-input').value = '';
+  showFocusTask();
+  showToast('🎯 ¡Tarea fijada!');
+}
+
+function showFocusTask() {
+  const el = document.getElementById('focus-task-display');
+  if (focusTask) {
+    el.textContent = focusTask;
+    el.classList.add('active');
+    // re-add icon via ::before, textContent approach
+    el.innerHTML = `<span>⚡</span><span>${focusTask}</span><button onclick="clearTask()" style="margin-left:auto;background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.8rem">✕</button>`;
+    el.classList.add('active');
+  } else {
+    el.classList.remove('active');
+  }
+}
+
+function clearTask() {
+  focusTask = '';
+  localStorage.removeItem('focus_task');
+  document.getElementById('focus-task-display').classList.remove('active');
+}
+
+document.getElementById('task-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') setTask();
+});
+
+// ─── POMODORO ─────────────────────────────────────────────────
+function updatePomoDisplay() {
+  const m = Math.floor(pomoSeconds / 60);
+  const s = pomoSeconds % 60;
+  document.getElementById('pomo-display').textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+function togglePomo() {
+  if (pomoRunning) {
+    clearInterval(pomoInterval);
+    pomoRunning = false;
+    document.getElementById('pomo-start-btn').textContent = '▶ Continuar';
+  } else {
+    pomoRunning = true;
+    document.getElementById('pomo-start-btn').textContent = '⏸ Pausar';
+    pomoInterval = setInterval(() => {
+      pomoSeconds--;
+      updatePomoDisplay();
+      if (pomoSeconds <= 0) {
+        clearInterval(pomoInterval);
+        pomoRunning = false;
+        if (pomoIsWork) {
+          stats.pomos++;
+          updatePomoDots();
+          updateStats();
+          localStorage.setItem('focus_stats', JSON.stringify(stats));
+          showToast('🎉 ¡Pomodoro completado! Toma un descanso.');
+          pomoIsWork = false;
+          pomoSeconds = 5 * 60;
+          document.getElementById('pomo-display').classList.replace('work-mode', 'break-mode');
+          document.getElementById('pomo-mode-label').textContent = 'Modo descanso';
+        } else {
+          showToast('💪 ¡Descanso terminado! A trabajar.');
+          pomoIsWork = true;
+          pomoSeconds = 25 * 60;
+          document.getElementById('pomo-display').classList.replace('break-mode', 'work-mode');
+          document.getElementById('pomo-mode-label').textContent = 'Modo trabajo';
+        }
+        updatePomoDisplay();
+        document.getElementById('pomo-start-btn').textContent = '▶ Iniciar';
+      }
+    }, 1000);
+  }
+}
+
+function resetPomo() {
+  clearInterval(pomoInterval);
+  pomoRunning = false;
+  pomoIsWork = true;
+  pomoSeconds = 25 * 60;
+  document.getElementById('pomo-display').textContent = '25:00';
+  document.getElementById('pomo-display').className = 'work-mode';
+  document.getElementById('pomo-mode-label').textContent = 'Modo trabajo';
+  document.getElementById('pomo-start-btn').textContent = '▶ Iniciar';
+}
+
+function updatePomoDots() {
+  const dots = document.querySelectorAll('.pomo-dot');
+  const count = stats.pomos % 4;
+  dots.forEach((d, i) => d.classList.toggle('filled', i < count || (count === 0 && stats.pomos > 0 && i < 4)));
+}
+
+// ─── STATS ────────────────────────────────────────────────────
+function updateStats() {
+  document.getElementById('stat-pomos').textContent = stats.pomos;
+  document.getElementById('stat-streak').textContent = stats.streak + 'd';
+}
+
+// Streak check
+function checkStreak() {
+  const today = new Date().toDateString();
+  if (stats.lastDay !== today) {
+    const yesterday = new Date(Date.now() - 86400000).toDateString();
+    if (stats.lastDay === yesterday) stats.streak++;
+    else if (stats.lastDay !== today) stats.streak = 1;
+    stats.lastDay = today;
+    localStorage.setItem('focus_stats', JSON.stringify(stats));
+  }
+}
+
+// ─── TOAST ────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+// ─── KEYBOARD SHORTCUT ────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+  if (e.key === 'n' && e.ctrlKey) { e.preventDefault(); openModal(); }
+});
+
+// ─── INIT ─────────────────────────────────────────────────────
+function init() {
+  checkStreak();
+  updateStats();
+  renderLinks();
+  renderEmojis();
+  showFocusTask();
+  updatePomoDisplay();
+}
+
+init();
+</script>
+</body>
+</html>

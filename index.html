@@ -1,1155 +1,562 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Focus — Tu espacio productivo</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<title>Focus — Nueva pestaña</title>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  :root {
-    --bg: #080c14;
-    --surface: #0d1220;
-    --surface2: #111827;
-    --border: rgba(255,255,255,0.07);
-    --accent: #4f8ef7;
-    --accent2: #7c5cbf;
-    --accent3: #2de2b0;
-    --text: #e8eaf0;
-    --muted: #596070;
-    --danger: #ef4444;
-    --success: #22c55e;
-    --radius: 16px;
-  }
-
-  html, body {
-    height: 100%;
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    overflow-x: hidden;
-  }
-
-  /* ── BACKGROUND ── */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background:
-      radial-gradient(ellipse 80% 60% at 10% 0%, rgba(79,142,247,0.12) 0%, transparent 60%),
-      radial-gradient(ellipse 60% 50% at 90% 100%, rgba(124,92,191,0.14) 0%, transparent 55%),
-      radial-gradient(ellipse 40% 40% at 50% 50%, rgba(45,226,176,0.04) 0%, transparent 70%);
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  /* Grain */
-  body::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-    pointer-events: none;
-    z-index: 0;
-    opacity: 0.6;
-  }
-
-  .wrapper {
-    position: relative;
-    z-index: 1;
-    min-height: 100vh;
-    display: grid;
-    grid-template-rows: auto 1fr auto;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 32px 40px;
-    gap: 40px;
-  }
-
-  /* ── HEADER ── */
-  header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    animation: slideDown 0.6s ease both;
-  }
-
-  .logo {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 1.2rem;
-    letter-spacing: -0.02em;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .logo-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--accent3);
-    box-shadow: 0 0 10px var(--accent3);
-    animation: pulse 2s ease-in-out infinite;
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.6; transform: scale(0.8); }
-  }
-
-  .header-right {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .blocked-badge {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 5px 14px;
-    background: rgba(239,68,68,0.1);
-    border: 1px solid rgba(239,68,68,0.2);
-    border-radius: 100px;
-    font-size: 0.72rem;
-    color: #f87171;
-    letter-spacing: 0.06em;
-    font-weight: 500;
-  }
-
-  .blocked-badge::before {
-    content: '';
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: #ef4444;
-  }
-
-  /* ── MAIN ── */
-  main {
-    display: grid;
-    grid-template-columns: 1fr 340px;
-    gap: 28px;
-    align-items: start;
-  }
-
-  /* ── CLOCK / HERO ── */
-  .hero {
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-    animation: fadeUp 0.7s ease both 0.1s;
-  }
-
-  .time-block {
-    display: flex;
-    flex-direction: column;
-  }
-
-  #clock {
-    font-family: 'Syne', sans-serif;
-    font-size: clamp(4rem, 10vw, 8rem);
-    font-weight: 800;
-    line-height: 1;
-    letter-spacing: -0.04em;
-    background: linear-gradient(135deg, #fff 30%, rgba(255,255,255,0.4));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  #date {
-    font-size: 0.95rem;
-    color: var(--muted);
-    font-weight: 300;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    margin-top: 8px;
-  }
-
-  /* Quote */
-  .quote-box {
-    padding: 20px 24px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    border-left: 3px solid var(--accent);
-    position: relative;
-    overflow: hidden;
-  }
-
-  .quote-box::before {
-    content: '"';
-    position: absolute;
-    top: -10px;
-    left: 16px;
-    font-size: 6rem;
-    color: var(--accent);
-    opacity: 0.08;
-    font-family: Georgia, serif;
-    line-height: 1;
-    pointer-events: none;
-  }
-
-  #quote-text {
-    font-size: 0.95rem;
-    color: var(--text);
-    line-height: 1.65;
-    font-style: italic;
-    font-weight: 300;
-  }
-
-  #quote-author {
-    font-size: 0.78rem;
-    color: var(--muted);
-    margin-top: 10px;
-    font-weight: 500;
-    letter-spacing: 0.05em;
-  }
-
-  /* Focus Mode */
-  .focus-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .focus-label {
-    font-family: 'Syne', sans-serif;
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--muted);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .focus-label span {
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-  }
-
-  .task-input-row {
-    display: flex;
-    gap: 10px;
-  }
-
-  .task-input {
-    flex: 1;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px 16px;
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.9rem;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-
-  .task-input::placeholder { color: var(--muted); }
-  .task-input:focus { border-color: var(--accent); }
-
-  .btn {
-    padding: 12px 20px;
-    border-radius: 10px;
-    border: none;
-    cursor: pointer;
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 0.82rem;
-    letter-spacing: 0.05em;
-    transition: all 0.2s;
-    white-space: nowrap;
-  }
-
-  .btn-primary {
-    background: var(--accent);
-    color: #fff;
-  }
-
-  .btn-primary:hover {
-    background: #6fa3fa;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 16px rgba(79,142,247,0.35);
-  }
-
-  .btn-ghost {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--muted);
-  }
-
-  .btn-ghost:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-  }
-
-  #focus-task-display {
-    padding: 12px 16px;
-    background: rgba(79,142,247,0.08);
-    border: 1px solid rgba(79,142,247,0.2);
-    border-radius: 10px;
-    font-size: 0.88rem;
-    color: var(--text);
-    display: none;
-    align-items: center;
-    gap: 10px;
-  }
-
-  #focus-task-display.active { display: flex; }
-
-  #focus-task-display::before {
-    content: '⚡';
-    font-size: 0.9rem;
-    flex-shrink: 0;
-  }
-
-  /* Pomodoro */
-  .pomodoro {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    flex-wrap: wrap;
-  }
-
-  #pomo-display {
-    font-family: 'Syne', sans-serif;
-    font-size: 2.2rem;
-    font-weight: 800;
-    letter-spacing: -0.03em;
-    color: var(--text);
-    min-width: 100px;
-  }
-
-  #pomo-display.work-mode { color: var(--accent3); }
-  #pomo-display.break-mode { color: var(--accent2); }
-
-  .pomo-mode-label {
-    font-size: 0.75rem;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-  }
-
-  .pomo-actions { display: flex; gap: 8px; }
-
-  /* ── SIDEBAR ── */
-  .sidebar {
-    display: flex;
-    flex-direction: column;
-    gap: 22px;
-    animation: fadeUp 0.7s ease both 0.2s;
-  }
-
-  .panel {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    overflow: hidden;
-  }
-
-  .panel-header {
-    padding: 18px 20px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .panel-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 0.78rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--muted);
-  }
-
-  .panel-action {
-    width: 28px;
-    height: 28px;
-    border-radius: 8px;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--muted);
-    font-size: 1rem;
-    transition: all 0.2s;
-    line-height: 1;
-  }
-
-  .panel-action:hover { border-color: var(--accent); color: var(--accent); }
-
-  /* Links */
-  #links-list {
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .link-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 14px;
-    border-radius: 10px;
-    background: transparent;
-    border: 1px solid transparent;
-    text-decoration: none;
-    color: var(--text);
-    transition: all 0.18s;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-    group: true;
-  }
-
-  .link-item::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(90deg, rgba(79,142,247,0.07), transparent);
-    opacity: 0;
-    transition: opacity 0.2s;
-  }
-
-  .link-item:hover::before { opacity: 1; }
-
-  .link-item:hover {
-    border-color: var(--border);
-    background: var(--surface2);
-    transform: translateX(3px);
-  }
-
-  .link-favicon {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    font-size: 0.85rem;
-    overflow: hidden;
-  }
-
-  .link-favicon img {
-    width: 20px;
-    height: 20px;
-    object-fit: contain;
-  }
-
-  .link-info { flex: 1; min-width: 0; }
-
-  .link-name {
-    font-size: 0.88rem;
-    font-weight: 500;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .link-url {
-    font-size: 0.72rem;
-    color: var(--muted);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin-top: 1px;
-  }
-
-  .link-delete {
-    opacity: 0;
-    width: 24px;
-    height: 24px;
-    border-radius: 6px;
-    background: rgba(239,68,68,0.1);
-    border: none;
-    color: #f87171;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.8rem;
-    transition: all 0.15s;
-    flex-shrink: 0;
-  }
-
-  .link-item:hover .link-delete { opacity: 1; }
-  .link-delete:hover { background: rgba(239,68,68,0.25); }
-
-  /* Add Link Modal */
-  #add-modal {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(8,12,20,0.85);
-    backdrop-filter: blur(8px);
-    z-index: 100;
-    align-items: center;
-    justify-content: center;
-    animation: fadeIn 0.2s ease;
-  }
-
-  #add-modal.open { display: flex; }
-
-  .modal-card {
-    background: var(--surface);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 20px;
-    padding: 32px;
-    width: 440px;
-    max-width: 90vw;
-    box-shadow: 0 32px 80px rgba(0,0,0,0.6);
-    animation: scaleIn 0.25s ease;
-  }
-
-  .modal-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 1.3rem;
-    font-weight: 800;
-    margin-bottom: 24px;
-    background: linear-gradient(135deg, #fff, rgba(255,255,255,0.5));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  .modal-fields { display: flex; flex-direction: column; gap: 14px; }
-
-  .field-label {
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--muted);
-    margin-bottom: 6px;
-  }
-
-  .field-input {
-    width: 100%;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px 16px;
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.9rem;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-
-  .field-input::placeholder { color: var(--muted); }
-  .field-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(79,142,247,0.1); }
-
-  .emoji-grid {
-    display: grid;
-    grid-template-columns: repeat(8, 1fr);
-    gap: 6px;
-    margin-top: 6px;
-  }
-
-  .emoji-btn {
-    padding: 6px;
-    border-radius: 6px;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    cursor: pointer;
-    font-size: 1rem;
-    text-align: center;
-    transition: all 0.15s;
-  }
-
-  .emoji-btn:hover, .emoji-btn.selected {
-    background: rgba(79,142,247,0.15);
-    border-color: var(--accent);
-  }
-
-  .modal-actions {
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end;
-    margin-top: 24px;
-  }
-
-  /* Stats row */
-  .stats-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 0;
-  }
-
-  .stat-item {
-    padding: 18px 16px;
-    text-align: center;
-    border-right: 1px solid var(--border);
-  }
-
-  .stat-item:last-child { border-right: none; }
-
-  .stat-value {
-    font-family: 'Syne', sans-serif;
-    font-size: 1.6rem;
-    font-weight: 800;
-    background: linear-gradient(135deg, var(--accent), var(--accent3));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    line-height: 1;
-  }
-
-  .stat-label {
-    font-size: 0.68rem;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-    margin-top: 4px;
-  }
-
-  /* Footer */
-  footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-top: 16px;
-    border-top: 1px solid var(--border);
-    animation: fadeUp 0.7s ease both 0.4s;
-  }
-
-  .footer-text {
-    font-size: 0.75rem;
-    color: var(--muted);
-    letter-spacing: 0.05em;
-  }
-
-  .motivation-bar {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .pomo-dots {
-    display: flex;
-    gap: 5px;
-  }
-
-  .pomo-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--border);
-    transition: background 0.3s;
-  }
-
-  .pomo-dot.filled { background: var(--accent3); box-shadow: 0 0 6px var(--accent3); }
-
-  /* Keyframes */
-  @keyframes slideDown {
-    from { transform: translateY(-20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-  }
-
-  @keyframes fadeUp {
-    from { transform: translateY(24px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  @keyframes scaleIn {
-    from { transform: scale(0.94); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
-  }
-
-  /* Scrollbar */
-  ::-webkit-scrollbar { width: 5px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
-
-  /* Notify toast */
-  #toast {
-    position: fixed;
-    bottom: 32px;
-    left: 50%;
-    transform: translateX(-50%) translateY(20px);
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 100px;
-    padding: 10px 22px;
-    font-size: 0.82rem;
-    color: var(--text);
-    opacity: 0;
-    transition: all 0.3s ease;
-    z-index: 200;
-    pointer-events: none;
-    white-space: nowrap;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-  }
-
-  #toast.show {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
-
-  @media (max-width: 800px) {
-    .wrapper { padding: 20px; gap: 24px; }
-    main { grid-template-columns: 1fr; }
-    .sidebar { order: -1; }
-    #clock { font-size: 4rem; }
-  }
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Outfit:wght@300;400;500;600&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#16140f;--ink2:#1e1b14;--cream:#f0ece3;--gold:#c9a84c;--gold2:#e8c96d;
+  --sage:#6d9b82;--muted:#6b6358;--border:rgba(201,168,76,0.16);
+  --borderW:rgba(255,255,255,0.06);--surf:rgba(255,255,255,0.035);
+  --surf2:rgba(255,255,255,0.065);--danger:#c0392b;--r:12px;--r2:20px;
+  --tr:0.2s cubic-bezier(0.4,0,0.2,1);
+  --ffd:'Playfair Display',Georgia,'Times New Roman',serif;
+  --ffb:'Outfit','Segoe UI',system-ui,-apple-system,sans-serif
+}
+html,body{height:100%;background:var(--ink);color:var(--cream);font-family:var(--ffb);overflow-x:hidden;line-height:1.5}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse 65% 55% at 4% 0%,rgba(201,168,76,0.12) 0%,transparent 55%),
+    radial-gradient(ellipse 55% 50% at 96% 100%,rgba(109,155,130,0.09) 0%,transparent 55%),
+    radial-gradient(ellipse 35% 40% at 50% 45%,rgba(201,168,76,0.04) 0%,transparent 65%)}
+body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:linear-gradient(rgba(201,168,76,0.02) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(201,168,76,0.02) 1px,transparent 1px);background-size:56px 56px}
+.page{position:relative;z-index:1;min-height:100vh;display:grid;
+  grid-template-columns:1fr 358px;grid-template-rows:auto 1fr auto;
+  grid-template-areas:"hd hd" "ml sb" "ft ft";padding:32px 44px;max-width:1400px;margin:0 auto}
+
+/* REVEAL */
+.rz{opacity:0;transform:translateY(16px);transition:opacity 0.5s ease,transform 0.5s ease}
+.rz.in{opacity:1;transform:none}
+
+/* HEADER */
+header{grid-area:hd;display:flex;align-items:center;justify-content:space-between;
+  padding-bottom:26px;border-bottom:1px solid var(--border);margin-bottom:4px}
+.logo{font-family:var(--ffd);font-style:italic;font-size:1.1rem;color:var(--gold);
+  display:flex;align-items:center;gap:10px}
+.logo-line{width:20px;height:1px;background:var(--gold);opacity:.45}
+.logo-sub{font-family:var(--ffb);font-style:normal;font-size:.66rem;font-weight:600;
+  letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.hdr{display:flex;align-items:center;gap:8px;font-size:.7rem;font-weight:500;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--sage);
+  box-shadow:0 0 7px var(--sage);animation:breathe 3s ease-in-out infinite}
+@keyframes breathe{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.6)}}
+
+/* MAIN LEFT */
+.main-col{grid-area:ml;padding-right:44px;padding-top:40px;display:flex;flex-direction:column;gap:36px}
+.greeting{font-size:.7rem;font-weight:700;letter-spacing:.24em;text-transform:uppercase;
+  color:var(--gold);display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.greeting::before{content:'';width:26px;height:1px;background:var(--gold);flex-shrink:0}
+#clock{font-family:var(--ffd);font-weight:900;font-size:clamp(4.8rem,10vw,9.2rem);
+  line-height:.88;letter-spacing:-.035em;color:var(--cream);display:flex;align-items:flex-start;user-select:none}
+#clock .sep{color:var(--gold);opacity:.6;animation:blink 1s step-end infinite}
+@keyframes blink{50%{opacity:.08}}
+#date-str{font-size:.8rem;font-weight:300;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;margin-top:14px}
+
+/* EYEBROW */
+.ey{font-size:.63rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);
+  margin-bottom:11px;display:flex;align-items:center;gap:10px}
+.ey::after{content:'';flex:1;max-width:70px;height:1px;background:var(--border)}
+
+/* TASK */
+.task-row{display:flex;background:var(--surf);border:1px solid var(--border);
+  border-radius:var(--r);overflow:hidden;transition:border-color var(--tr),box-shadow var(--tr)}
+.task-row:focus-within{border-color:rgba(201,168,76,.42);box-shadow:0 0 0 3px rgba(201,168,76,.07)}
+.task-in{flex:1;background:transparent;border:none;padding:14px 18px;color:var(--cream);
+  font-family:var(--ffb);font-size:.88rem;outline:none}
+.task-in::placeholder{color:var(--muted)}
+.task-btn{background:transparent;border:none;border-left:1px solid var(--border);padding:0 18px;
+  cursor:pointer;color:var(--gold);font-family:var(--ffb);font-size:.68rem;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;transition:background var(--tr);white-space:nowrap}
+.task-btn:hover{background:rgba(201,168,76,.1)}
+.active-task{display:none;margin-top:9px;padding:11px 15px;
+  background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.18);border-radius:var(--r);
+  align-items:center;gap:10px;font-size:.85rem}
+.active-task.on{display:flex}
+.tx{margin-left:auto;background:none;border:none;color:var(--muted);cursor:pointer;
+  font-size:.78rem;padding:2px 4px;border-radius:4px;transition:color var(--tr);flex-shrink:0}
+.tx:hover{color:var(--danger)}
+
+/* POMO */
+.pcard{background:var(--surf);border:1px solid var(--border);border-radius:var(--r2);
+  padding:24px 28px;display:flex;align-items:center;justify-content:space-between;gap:20px;
+  position:relative;overflow:hidden}
+.pcard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--gold),transparent);opacity:.5}
+#pt{font-family:var(--ffd);font-size:3.2rem;font-weight:700;letter-spacing:-.02em;
+  line-height:1;color:var(--cream);transition:color .3s}
+#pt.rest{color:var(--sage)}
+.pm{margin-top:6px;display:flex;align-items:center;gap:12px}
+.plbl{font-size:.66rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+.pips{display:flex;gap:5px}
+.pip{width:18px;height:3px;border-radius:2px;background:var(--surf2);border:1px solid var(--border);
+  transition:background .3s,box-shadow .3s}
+.pip.on{background:var(--gold);border-color:var(--gold);box-shadow:0 0 5px rgba(201,168,76,.45)}
+.pbts{display:flex;flex-direction:column;gap:8px}
+
+/* QUOTE */
+.qcard{padding:18px 22px;border-left:2px solid var(--gold);
+  background:linear-gradient(90deg,rgba(201,168,76,.05),transparent 70%);
+  border-radius:0 var(--r) var(--r) 0}
+#qt{font-family:var(--ffd);font-style:italic;font-size:.98rem;color:var(--cream);line-height:1.72;opacity:.88}
+#qa{font-size:.66rem;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-top:9px}
+
+/* SIDEBAR */
+.sidebar{grid-area:sb;padding-left:36px;padding-top:40px;border-left:1px solid var(--border);
+  display:flex;flex-direction:column;gap:16px}
+
+/* STATS */
+.sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;
+  background:var(--border);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.sc{background:var(--ink);padding:13px 10px;text-align:center;transition:background var(--tr);cursor:default}
+.sc:hover{background:var(--surf2)}
+.sv{font-family:var(--ffd);font-size:1.65rem;font-weight:700;color:var(--gold);line-height:1}
+.sl{font-size:.58rem;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin-top:4px}
+
+/* LINKS PANEL */
+.lpanel{flex:1;min-height:160px;background:var(--surf);border:1px solid var(--border);
+  border-radius:var(--r2);display:flex;flex-direction:column;overflow:hidden}
+.ph{padding:15px 17px;border-bottom:1px solid var(--border);display:flex;align-items:center;
+  justify-content:space-between;flex-shrink:0}
+.ph-t{font-size:.62rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.add-b{width:27px;height:27px;border-radius:7px;background:rgba(201,168,76,.1);
+  border:1px solid rgba(201,168,76,.24);color:var(--gold);cursor:pointer;font-size:1.05rem;
+  display:flex;align-items:center;justify-content:center;transition:all var(--tr);font-family:var(--ffb);line-height:1}
+.add-b:hover{background:rgba(201,168,76,.2);transform:rotate(90deg)}
+.lscroll{flex:1;overflow-y:auto;padding:7px;display:flex;flex-direction:column;gap:2px}
+.lscroll::-webkit-scrollbar{width:3px}
+.lscroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.l-empty{padding:26px 14px;text-align:center;color:var(--muted);font-size:.76rem;line-height:1.55}
+.lrow{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--r);
+  text-decoration:none;color:var(--cream);border:1px solid transparent;
+  transition:background var(--tr),border-color var(--tr),transform var(--tr);position:relative}
+.lrow:hover{background:var(--surf2);border-color:var(--borderW);transform:translateX(3px)}
+.lico{width:32px;height:32px;border-radius:7px;background:var(--ink2);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.9rem;overflow:hidden}
+.lico img{width:17px;height:17px;object-fit:contain}
+.linfo{flex:1;min-width:0}
+.lname{font-size:.82rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lhost{font-size:.65rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.larr{font-size:.68rem;color:var(--muted);opacity:0;flex-shrink:0;transition:opacity var(--tr),color var(--tr)}
+.lrow:hover .larr{opacity:1;color:var(--gold)}
+.ldel{position:absolute;right:7px;top:50%;transform:translateY(-50%);width:19px;height:19px;
+  border-radius:4px;background:rgba(192,57,43,.1);border:1px solid rgba(192,57,43,.2);
+  color:#e07070;cursor:pointer;font-size:.6rem;display:none;align-items:center;justify-content:center;
+  transition:background var(--tr)}
+.lrow:hover .ldel{display:flex}
+.ldel:hover{background:rgba(192,57,43,.28)}
+
+/* HABITS */
+.hcard{background:var(--surf);border:1px solid var(--border);border-radius:var(--r2);padding:16px 18px}
+.hrow{display:flex;align-items:center;gap:9px;padding:6px 0;
+  border-bottom:1px solid rgba(255,255,255,.04);font-size:.78rem}
+.hrow:last-child{border-bottom:none}
+.hlbl{flex:1;transition:opacity var(--tr)}
+.hlbl.done{opacity:.32;text-decoration:line-through}
+.hck{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--border);background:transparent;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.58rem;
+  transition:all var(--tr);flex-shrink:0;color:transparent}
+.hck.on{background:var(--sage);border-color:var(--sage);color:#fff}
+
+/* FOOTER */
+footer{grid-area:ft;display:flex;align-items:center;justify-content:space-between;
+  padding-top:20px;margin-top:16px;border-top:1px solid var(--border)}
+.ft-l{font-size:.66rem;color:var(--muted);letter-spacing:.07em}
+.ft-r{display:flex;align-items:center;gap:9px}
+.dtrack{width:110px;height:3px;background:var(--surf2);border-radius:2px;overflow:hidden}
+.dfill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:2px;transition:width 1.2s ease}
+.dpct{font-size:.62rem;font-weight:600;color:var(--muted);letter-spacing:.09em;min-width:32px;text-align:right}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:9px 18px;border-radius:var(--r);
+  border:1px solid transparent;cursor:pointer;font-family:var(--ffb);font-weight:600;font-size:.72rem;
+  letter-spacing:.08em;text-transform:uppercase;transition:all var(--tr);white-space:nowrap;outline:none}
+.btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.btn-g{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#100d00}
+.btn-g:hover{transform:translateY(-2px);box-shadow:0 5px 18px rgba(201,168,76,.34)}
+.btn-o{background:transparent;border-color:var(--border);color:var(--muted)}
+.btn-o:hover{border-color:rgba(255,255,255,.17);color:var(--cream)}
+.btn-sm{padding:7px 14px;font-size:.65rem}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;z-index:999;background:rgba(8,7,5,.88);backdrop-filter:blur(10px);
+  display:none;align-items:center;justify-content:center;padding:20px}
+.overlay.open{display:flex}
+.modal{background:#1c1912;border:1px solid rgba(201,168,76,.2);border-radius:20px;
+  width:450px;max-width:100%;box-shadow:0 32px 80px rgba(0,0,0,.7);overflow:hidden;
+  animation:mIn .24s cubic-bezier(0.34,1.56,0.64,1)}
+@keyframes mIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+.mh{padding:24px 26px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.mt{font-family:var(--ffd);font-size:1.15rem;font-weight:700;color:var(--cream)}
+.mc{width:28px;height:28px;border-radius:7px;background:var(--surf);border:1px solid var(--border);
+  color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:.85rem;transition:all var(--tr)}
+.mc:hover{color:var(--cream);border-color:rgba(255,255,255,.18)}
+.mb{padding:20px 26px;display:flex;flex-direction:column;gap:16px}
+.fl{font-size:.62rem;font-weight:700;letter-spacing:.17em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px}
+.fi{width:100%;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--r);
+  padding:11px 14px;color:var(--cream);font-family:var(--ffb);font-size:.86rem;outline:none;
+  transition:border-color var(--tr),box-shadow var(--tr)}
+.fi::placeholder{color:var(--muted)}
+.fi:focus{border-color:rgba(201,168,76,.42);box-shadow:0 0 0 3px rgba(201,168,76,.07)}
+.fh{font-size:.64rem;color:var(--muted);margin-top:4px}
+.ep{display:grid;grid-template-columns:repeat(10,1fr);gap:3px}
+.epb{aspect-ratio:1;border-radius:5px;background:var(--surf);border:1px solid transparent;
+  cursor:pointer;font-size:.95rem;display:flex;align-items:center;justify-content:center;transition:all .14s}
+.epb:hover{background:var(--surf2);border-color:var(--border)}
+.epb.sel{border-color:var(--gold);background:rgba(201,168,76,.14)}
+.mf{padding:0 26px 22px;display:flex;justify-content:flex-end;gap:8px}
+
+/* TOAST */
+#toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(10px);
+  background:#1e1b12;border:1px solid var(--border);border-radius:100px;padding:8px 20px;
+  font-size:.76rem;font-weight:500;color:var(--cream);letter-spacing:.04em;z-index:9999;
+  opacity:0;pointer-events:none;transition:all .26s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow:0 4px 22px rgba(0,0,0,.45);white-space:nowrap}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media(max-width:860px){
+  .page{grid-template-columns:1fr;grid-template-areas:"hd" "ml" "sb" "ft";padding:18px 16px}
+  .main-col{padding-right:0}
+  .sidebar{border-left:none;border-top:1px solid var(--border);padding-left:0;padding-top:24px}
+  #clock{font-size:3.6rem}
+}
 </style>
 </head>
 <body>
+<div class="page">
 
-<div class="wrapper">
-
-  <!-- HEADER -->
-  <header>
+  <header class="rz" data-d="0">
     <div class="logo">
-      <div class="logo-dot"></div>
-      FOCUS
+      Focus
+      <div class="logo-line"></div>
+      <span class="logo-sub">Espacio de trabajo</span>
     </div>
-    <div class="header-right">
-      <div class="blocked-badge">Sitio bloqueado — redirigido</div>
+    <div class="hdr">
+      <div class="dot"></div>
+      <span id="hd-d">—</span>
     </div>
   </header>
 
-  <!-- MAIN -->
-  <main>
-
-    <!-- LEFT / HERO -->
-    <div class="hero">
-      <div class="time-block">
-        <div id="clock">00:00:00</div>
-        <div id="date">Cargando fecha...</div>
+  <div class="main-col">
+    <div class="rz" data-d="80">
+      <div class="greeting" id="greet">Buenos días</div>
+      <div id="clock">
+        <span id="ch">00</span><span class="sep">:</span><span id="cm">00</span><span class="sep">:</span><span id="cs">00</span>
       </div>
-
-      <!-- Quote -->
-      <div class="quote-box">
-        <div id="quote-text">La concentración es la raíz de todos los poderes del hombre.</div>
-        <div id="quote-author">— Bruce Lee</div>
-      </div>
-
-      <!-- Focus + Pomodoro -->
-      <div class="focus-card">
-        <div class="focus-label">Tarea de enfoque <span></span></div>
-
-        <div class="task-input-row">
-          <input class="task-input" id="task-input" type="text" placeholder="¿En qué te vas a enfocar hoy?" />
-          <button class="btn btn-primary" onclick="setTask()">Fijar</button>
-        </div>
-
-        <div id="focus-task-display" class=""></div>
-
-        <div class="focus-label" style="margin-top: 4px;">Pomodoro <span></span></div>
-        <div class="pomodoro">
-          <div>
-            <div id="pomo-display" class="work-mode">25:00</div>
-            <div class="pomo-mode-label" id="pomo-mode-label">Modo trabajo</div>
-          </div>
-          <div class="pomo-actions">
-            <button class="btn btn-primary" id="pomo-start-btn" onclick="togglePomo()">▶ Iniciar</button>
-            <button class="btn btn-ghost" onclick="resetPomo()">↺ Reset</button>
-          </div>
-        </div>
-      </div>
-
+      <div id="date-str">cargando...</div>
     </div>
 
-    <!-- SIDEBAR -->
-    <div class="sidebar">
-
-      <!-- Stats -->
-      <div class="panel">
-        <div class="stats-row">
-          <div class="stat-item">
-            <div class="stat-value" id="stat-pomos">0</div>
-            <div class="stat-label">Pomodoros</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value" id="stat-links">0</div>
-            <div class="stat-label">Links</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value" id="stat-streak">0d</div>
-            <div class="stat-label">Racha</div>
-          </div>
-        </div>
+    <div class="rz" data-d="160">
+      <div class="ey">Tarea de enfoque</div>
+      <div class="task-row">
+        <input class="task-in" id="tin" type="text" placeholder="¿En qué te vas a enfocar hoy?" maxlength="120"/>
+        <button class="task-btn" onclick="setTask()">Fijar</button>
       </div>
-
-      <!-- Links -->
-      <div class="panel">
-        <div class="panel-header">
-          <div class="panel-title">Accesos rápidos</div>
-          <button class="panel-action" onclick="openModal()" title="Añadir link">+</button>
-        </div>
-        <div id="links-list"></div>
+      <div class="active-task" id="atask">
+        <span>◈</span><span id="atxt"></span>
+        <button class="tx" onclick="clearTask()">✕</button>
       </div>
-
     </div>
-  </main>
 
-  <!-- FOOTER -->
-  <footer>
-    <div class="footer-text" id="footer-blocked">Sitio bloqueado por tu regla de productividad ✦</div>
-    <div class="motivation-bar">
-      <span style="font-size:0.72rem;color:var(--muted);">Ciclos hoy</span>
-      <div class="pomo-dots" id="pomo-dots">
-        <div class="pomo-dot"></div>
-        <div class="pomo-dot"></div>
-        <div class="pomo-dot"></div>
-        <div class="pomo-dot"></div>
+    <div class="rz" data-d="240">
+      <div class="ey">Temporizador Pomodoro</div>
+      <div class="pcard">
+        <div>
+          <div id="pt">25:00</div>
+          <div class="pm">
+            <div class="plbl" id="plbl">Sesión de trabajo</div>
+            <div class="pips" id="pips">
+              <div class="pip"></div><div class="pip"></div>
+              <div class="pip"></div><div class="pip"></div>
+            </div>
+          </div>
+        </div>
+        <div class="pbts">
+          <button class="btn btn-g btn-sm" id="pbtn" onclick="togPomo()">▶ Iniciar</button>
+          <button class="btn btn-o btn-sm" onclick="rstPomo()">↺ Reiniciar</button>
+        </div>
       </div>
+    </div>
+
+    <div class="rz" data-d="320">
+      <div class="qcard">
+        <div id="qt">…</div>
+        <div id="qa"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar rz" data-d="180">
+    <div class="sgrid">
+      <div class="sc"><div class="sv" id="sp">0</div><div class="sl">Pomodoros</div></div>
+      <div class="sc"><div class="sv" id="sl2">0</div><div class="sl">Links</div></div>
+      <div class="sc"><div class="sv" id="ss">0</div><div class="sl">Racha días</div></div>
+    </div>
+
+    <div class="lpanel">
+      <div class="ph">
+        <div class="ph-t">Accesos rápidos</div>
+        <button class="add-b" onclick="openModal()" title="Agregar link — Ctrl+K">+</button>
+      </div>
+      <div class="lscroll" id="lscroll">
+        <div class="l-empty" id="lempty">Presiona <strong>+</strong> para añadir tu primer acceso</div>
+      </div>
+    </div>
+
+    <div class="hcard">
+      <div class="ey" style="margin-bottom:10px">Hábitos del día</div>
+      <div id="hlist"></div>
+    </div>
+  </div>
+
+  <footer class="rz" data-d="380">
+    <div class="ft-l">Enfocado · Productivo · Presente</div>
+    <div class="ft-r">
+      <div class="dpct" id="dpct">0%</div>
+      <div class="dtrack"><div class="dfill" id="dfill" style="width:0%"></div></div>
     </div>
   </footer>
-
 </div>
 
-<!-- ADD LINK MODAL -->
-<div id="add-modal">
-  <div class="modal-card">
-    <div class="modal-title">Añadir acceso rápido</div>
-    <div class="modal-fields">
+<div class="overlay" id="overlay">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="mh">
+      <div class="mt">Nuevo acceso rápido</div>
+      <button class="mc" onclick="closeModal()">✕</button>
+    </div>
+    <div class="mb">
       <div>
-        <div class="field-label">Nombre</div>
-        <input class="field-input" id="new-name" type="text" placeholder="ej. UdeA Campus">
+        <label class="fl" for="mn">Nombre del sitio</label>
+        <input class="fi" id="mn" type="text" placeholder="ej. UdeA Campus" maxlength="40" autocomplete="off">
       </div>
       <div>
-        <div class="field-label">URL</div>
-        <input class="field-input" id="new-url" type="url" placeholder="https://...">
+        <label class="fl" for="mu">URL completa</label>
+        <input class="fi" id="mu" type="url" placeholder="https://..." autocomplete="off">
+        <div class="fh">Incluye https:// al inicio. Ej: https://ejemplo.com</div>
       </div>
       <div>
-        <div class="field-label">Ícono</div>
-        <div class="emoji-grid" id="emoji-grid"></div>
+        <div class="fl">Ícono</div>
+        <div class="ep" id="ep"></div>
       </div>
     </div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
-      <button class="btn btn-primary" onclick="addLink()">Guardar</button>
+    <div class="mf">
+      <button class="btn btn-o" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-g" onclick="saveLink()">Guardar acceso</button>
     </div>
   </div>
 </div>
 
-<!-- TOAST -->
 <div id="toast"></div>
 
 <script>
-// ─── DATA ───────────────────────────────────────────────────
-const DEFAULT_LINKS = [
-  { id: 1, name: 'UdeA Campus', url: 'https://udearroba.udea.edu.co/internos/login/index.php?loginredirect=1', emoji: '🎓' },
-  { id: 2, name: 'Supabase', url: 'https://supabase.com/', emoji: '⚡' },
-  { id: 3, name: 'Gemini AI', url: 'https://gemini.google.com/u/2/app', emoji: '✨' },
+const DAYS=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const MON=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const QUOTES=[
+  {t:'La disciplina es el puente entre metas y logros.',a:'Jim Rohn'},
+  {t:'Haz hoy lo que otros no quieren. Mañana vivirás como otros no pueden.',a:'Jerry Rice'},
+  {t:'La concentración es la raíz de todos los poderes del hombre.',a:'Bruce Lee'},
+  {t:'No cuentes los días; haz que los días cuenten.',a:'Muhammad Ali'},
+  {t:'Trabaja duro en silencio. Deja que el éxito haga el ruido.',a:'Frank Ocean'},
+  {t:'No te detengas cuando estés cansado. Detente cuando hayas terminado.',a:'Anónimo'},
+  {t:'La productividad no es hacer más cosas, sino las cosas correctas.',a:'Cal Newport'},
+  {t:'Empieza donde estás. Usa lo que tienes. Haz lo que puedas.',a:'Arthur Ashe'},
+  {t:'El tiempo que disfrutas usando no es tiempo perdido.',a:'Bertrand Russell'},
+  {t:'Un paso a la vez es suficiente para seguir adelante.',a:'Martin Luther King Jr.'},
+];
+const EMOJIS=['📚','💻','🎯','🚀','⚡','🔥','✨','🌟','💡','🛠️','📊','📝','🎓','🔬','🎨','🧠','💪','🌐','📱','🔗','📌','🏆','⚙️','🗂️','🔑','🌿','📐','🌍','🎵','🏃'];
+const DEF_L=[
+  {id:1001,name:'UdeA Campus',url:'https://udearroba.udea.edu.co/internos/login/index.php?loginredirect=1',emoji:'🎓'},
+  {id:1002,name:'Supabase',url:'https://supabase.com/',emoji:'⚡'},
+  {id:1003,name:'Gemini AI',url:'https://gemini.google.com/u/2/app',emoji:'✨'},
+];
+const DEF_H=[
+  {id:1,label:'Revisar tareas del día',done:false},
+  {id:2,label:'Beber agua suficiente',done:false},
+  {id:3,label:'Descanso activo 10 min',done:false},
 ];
 
-const QUOTES = [
-  { text: 'La concentración es la raíz de todos los poderes del hombre.', author: 'Bruce Lee' },
-  { text: 'Haz hoy lo que otros no quieren, y mañana vivirás como otros no pueden.', author: 'Jerry Rice' },
-  { text: 'No cuentes los días, haz que los días cuenten.', author: 'Muhammad Ali' },
-  { text: 'La disciplina es el puente entre metas y logros.', author: 'Jim Rohn' },
-  { text: 'El éxito es la suma de pequeños esfuerzos repetidos día tras día.', author: 'Robert Collier' },
-  { text: 'Trabaja duro en silencio. Deja que el éxito haga el ruido.', author: 'Frank Ocean' },
-  { text: 'No te detengas cuando estés cansado. Detente cuando hayas terminado.', author: 'Anónimo' },
-  { text: 'El tiempo que disfrutas malgastando no es tiempo malgastado.', author: 'Bertrand Russell' },
-];
+let links=lsG('ft_links')||DEF_L;
+let stats=lsG('ft_stats')||{pomos:0,streak:0,lastDay:'',habDay:''};
+let habits=lsG('ft_habits')||DEF_H;
+let ftask=localStorage.getItem('ft_task')||'';
+let semoji='🔗';
+let ps=25*60,pw=true,pr=false,pint=null;
 
-const EMOJIS = ['📚', '💻', '🎯', '🚀', '⚡', '🔥', '✨', '🌟', '💡', '🛠️', '📊', '📝', '🎓', '🔬', '🎨', '🧠', '💪', '🌐', '📱', '🔗'];
-
-// ─── STATE ───────────────────────────────────────────────────
-let links = JSON.parse(localStorage.getItem('focus_links') || 'null') || DEFAULT_LINKS;
-let stats = JSON.parse(localStorage.getItem('focus_stats') || '{"pomos":0,"streak":0,"lastDay":""}') ;
-let focusTask = localStorage.getItem('focus_task') || '';
-let selectedEmoji = '🔗';
-
-// Pomodoro
-let pomoSeconds = 25 * 60;
-let pomoIsWork = true;
-let pomoRunning = false;
-let pomoInterval = null;
-
-// ─── CLOCK ────────────────────────────────────────────────────
-function updateClock() {
-  const now = new Date();
-  const hh = String(now.getHours()).padStart(2, '0');
-  const mm = String(now.getMinutes()).padStart(2, '0');
-  const ss = String(now.getSeconds()).padStart(2, '0');
-  document.getElementById('clock').textContent = `${hh}:${mm}:${ss}`;
-
-  const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-  const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-  document.getElementById('date').textContent =
-    `${days[now.getDay()]}, ${now.getDate()} de ${months[now.getMonth()]} ${now.getFullYear()}`;
-}
-setInterval(updateClock, 1000);
-updateClock();
-
-// ─── QUOTE ────────────────────────────────────────────────────
-const q = QUOTES[Math.floor(Math.random() * QUOTES.length)];
-document.getElementById('quote-text').textContent = q.text;
-document.getElementById('quote-author').textContent = '— ' + q.author;
-
-// ─── LINKS ────────────────────────────────────────────────────
-function saveLinks() {
-  localStorage.setItem('focus_links', JSON.stringify(links));
-  document.getElementById('stat-links').textContent = links.length;
+function lsG(k){try{return JSON.parse(localStorage.getItem(k));}catch{return null;}}
+function save(){
+  localStorage.setItem('ft_links',JSON.stringify(links));
+  localStorage.setItem('ft_stats',JSON.stringify(stats));
+  localStorage.setItem('ft_habits',JSON.stringify(habits));
+  localStorage.setItem('ft_task',ftask);
 }
 
-function getFavicon(url) {
-  try {
-    const domain = new URL(url).hostname;
-    return `https://www.google.com/s2/favicons?sz=32&domain=${domain}`;
-  } catch { return null; }
-}
-
-function renderLinks() {
-  const container = document.getElementById('links-list');
-  container.innerHTML = '';
-  links.forEach(link => {
-    const item = document.createElement('a');
-    item.href = link.url;
-    item.target = '_blank';
-    item.rel = 'noopener noreferrer';
-    item.className = 'link-item';
-
-    const faviconUrl = getFavicon(link.url);
-    const faviconHtml = faviconUrl
-      ? `<img src="${faviconUrl}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'" alt=""><span style="display:none">${link.emoji}</span>`
-      : `<span>${link.emoji}</span>`;
-
-    let displayUrl = '';
-    try { displayUrl = new URL(link.url).hostname; } catch { displayUrl = link.url; }
-
-    item.innerHTML = `
-      <div class="link-favicon">${faviconHtml}</div>
-      <div class="link-info">
-        <div class="link-name">${link.name}</div>
-        <div class="link-url">${displayUrl}</div>
-      </div>
-      <button class="link-delete" onclick="deleteLink(event, ${link.id})">✕</button>
-    `;
-    container.appendChild(item);
-  });
-  document.getElementById('stat-links').textContent = links.length;
-}
-
-function deleteLink(e, id) {
-  e.preventDefault();
-  e.stopPropagation();
-  links = links.filter(l => l.id !== id);
-  saveLinks();
-  renderLinks();
-  showToast('Link eliminado');
-}
-
-// ─── MODAL ────────────────────────────────────────────────────
-function openModal() {
-  document.getElementById('add-modal').classList.add('open');
-  document.getElementById('new-name').focus();
-}
-
-function closeModal() {
-  document.getElementById('add-modal').classList.remove('open');
-  document.getElementById('new-name').value = '';
-  document.getElementById('new-url').value = '';
-}
-
-function addLink() {
-  const name = document.getElementById('new-name').value.trim();
-  const url = document.getElementById('new-url').value.trim();
-  if (!name || !url) { showToast('⚠️ Nombre y URL son requeridos'); return; }
-  let safeUrl = url;
-  if (!url.startsWith('http://') && !url.startsWith('https://')) safeUrl = 'https://' + url;
-
-  const newLink = { id: Date.now(), name, url: safeUrl, emoji: selectedEmoji };
-  links.push(newLink);
-  saveLinks();
-  renderLinks();
-  closeModal();
-  showToast('✓ Link añadido correctamente');
-}
-
-// Emoji grid
-function renderEmojis() {
-  const grid = document.getElementById('emoji-grid');
-  grid.innerHTML = '';
-  EMOJIS.forEach(emoji => {
-    const btn = document.createElement('button');
-    btn.className = 'emoji-btn' + (emoji === selectedEmoji ? ' selected' : '');
-    btn.textContent = emoji;
-    btn.onclick = () => {
-      selectedEmoji = emoji;
-      document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
-    };
-    grid.appendChild(btn);
+function runReveal(){
+  document.querySelectorAll('.rz').forEach(el=>{
+    setTimeout(()=>el.classList.add('in'),parseInt(el.dataset.d||0));
   });
 }
 
-// Close modal on backdrop click
-document.getElementById('add-modal').addEventListener('click', e => {
-  if (e.target === document.getElementById('add-modal')) closeModal();
-});
-
-// ─── FOCUS TASK ────────────────────────────────────────────────
-function setTask() {
-  const val = document.getElementById('task-input').value.trim();
-  if (!val) { showToast('⚠️ Escribe tu tarea primero'); return; }
-  focusTask = val;
-  localStorage.setItem('focus_task', val);
-  document.getElementById('task-input').value = '';
-  showFocusTask();
-  showToast('🎯 ¡Tarea fijada!');
+function p2(n){return String(n).padStart(2,'0');}
+function tick(){
+  const n=new Date(),h=n.getHours(),m=n.getMinutes(),s=n.getSeconds();
+  document.getElementById('ch').textContent=p2(h);
+  document.getElementById('cm').textContent=p2(m);
+  document.getElementById('cs').textContent=p2(s);
+  document.getElementById('date-str').textContent=DAYS[n.getDay()]+', '+n.getDate()+' de '+MON[n.getMonth()]+' de '+n.getFullYear();
+  document.getElementById('hd-d').textContent=DAYS[n.getDay()].substring(0,3)+' '+n.getDate()+' '+MON[n.getMonth()].substring(0,3);
+  document.getElementById('greet').textContent=h<12?'Buenos días':h<18?'Buenas tardes':'Buenas noches';
+  const pct=Math.round(((h*60+m)/1440)*100);
+  document.getElementById('dfill').style.width=pct+'%';
+  document.getElementById('dpct').textContent=pct+'%';
 }
+setInterval(tick,1000);tick();
 
-function showFocusTask() {
-  const el = document.getElementById('focus-task-display');
-  if (focusTask) {
-    el.textContent = focusTask;
-    el.classList.add('active');
-    // re-add icon via ::before, textContent approach
-    el.innerHTML = `<span>⚡</span><span>${focusTask}</span><button onclick="clearTask()" style="margin-left:auto;background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.8rem">✕</button>`;
-    el.classList.add('active');
-  } else {
-    el.classList.remove('active');
+(function(){
+  const k=new Date().toDateString();
+  const i=Math.abs([...k].reduce((a,c)=>a+c.charCodeAt(0),0))%QUOTES.length;
+  document.getElementById('qt').textContent=QUOTES[i].t;
+  document.getElementById('qa').textContent='— '+QUOTES[i].a;
+})();
+
+function setTask(){
+  const v=document.getElementById('tin').value.trim();
+  if(!v){toast('⚠ Escribe tu tarea primero');return;}
+  ftask=v;document.getElementById('tin').value='';
+  save();renderTask();toast('◈ Tarea fijada');
+}
+function clearTask(){ftask='';save();renderTask();}
+function renderTask(){
+  const el=document.getElementById('atask');
+  if(ftask){document.getElementById('atxt').textContent=ftask;el.classList.add('on');}
+  else el.classList.remove('on');
+}
+document.getElementById('tin').addEventListener('keydown',e=>{if(e.key==='Enter')setTask();});
+
+function renderPomo(){
+  document.getElementById('pt').textContent=p2(Math.floor(ps/60))+':'+p2(ps%60);
+  document.getElementById('pt').className=pw?'':'rest';
+  document.getElementById('plbl').textContent=pw?'Sesión de trabajo':'Descanso activo';
+  const f=stats.pomos%4;
+  document.querySelectorAll('.pip').forEach((p,i)=>p.classList.toggle('on',i<f));
+}
+function togPomo(){
+  if(pr){clearInterval(pint);pr=false;document.getElementById('pbtn').textContent='▶ Continuar';}
+  else{
+    pr=true;document.getElementById('pbtn').textContent='⏸ Pausar';
+    pint=setInterval(()=>{
+      if(ps>0){ps--;renderPomo();return;}
+      clearInterval(pint);pr=false;
+      if(pw){stats.pomos++;chkStreak();save();renderStats();toast('🏆 ¡Pomodoro completo! Tómate un respiro.');pw=false;ps=5*60;}
+      else{toast('💪 ¡Descanso listo! A trabajar.');pw=true;ps=25*60;}
+      document.getElementById('pbtn').textContent='▶ Iniciar';
+      renderPomo();
+    },1000);
   }
 }
+function rstPomo(){clearInterval(pint);pr=false;pw=true;ps=25*60;document.getElementById('pbtn').textContent='▶ Iniciar';renderPomo();}
 
-function clearTask() {
-  focusTask = '';
-  localStorage.removeItem('focus_task');
-  document.getElementById('focus-task-display').classList.remove('active');
+function chkStreak(){
+  const td=new Date().toDateString(),yd=new Date(Date.now()-86400000).toDateString();
+  if(stats.lastDay===td)return;
+  stats.streak=(stats.lastDay===yd)?stats.streak+1:1;
+  stats.lastDay=td;
+}
+function renderStats(){
+  document.getElementById('sp').textContent=stats.pomos;
+  document.getElementById('sl2').textContent=links.length;
+  document.getElementById('ss').textContent=stats.streak;
 }
 
-document.getElementById('task-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') setTask();
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function host(u){try{return new URL(u).hostname.replace('www.','');}catch{return u;}}
+function fav(u){try{return'https://www.google.com/s2/favicons?sz=32&domain='+new URL(u).hostname;}catch{return null;}}
+
+function renderLinks(){
+  const sc=document.getElementById('lscroll');
+  sc.querySelectorAll('.lrow').forEach(r=>r.remove());
+  const em=document.getElementById('lempty');
+  if(!links.length){em.style.display='block';renderStats();return;}
+  em.style.display='none';
+  links.forEach(lk=>{
+    const a=document.createElement('a');
+    a.className='lrow';a.href=lk.url;a.target='_blank';a.rel='noopener noreferrer';
+    const f=fav(lk.url);
+    const ico=f?'<img src="'+f+'" alt="" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'block\'"><span style="display:none">'+lk.emoji+'</span>':lk.emoji;
+    a.innerHTML='<div class="lico">'+ico+'</div><div class="linfo"><div class="lname">'+esc(lk.name)+'</div><div class="lhost">'+esc(host(lk.url))+'</div></div><span class="larr">↗</span><button class="ldel" onclick="delLink(event,'+lk.id+')" title="Eliminar">✕</button>';
+    sc.appendChild(a);
+  });
+  renderStats();
+}
+function delLink(e,id){e.preventDefault();e.stopPropagation();links=links.filter(l=>l.id!==id);save();renderLinks();toast('Link eliminado');}
+
+function openModal(){
+  semoji='🔗';document.getElementById('mn').value='';document.getElementById('mu').value='';
+  buildEP();document.getElementById('overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('mn').focus(),80);
+}
+function closeModal(){document.getElementById('overlay').classList.remove('open');}
+function saveLink(){
+  const nm=document.getElementById('mn').value.trim();
+  const ur=document.getElementById('mu').value.trim();
+  if(!nm){toast('⚠ El nombre es requerido');return;}
+  if(!ur){toast('⚠ La URL es requerida');return;}
+  let sf=/^https?:\/\//i.test(ur)?ur:'https://'+ur;
+  try{new URL(sf);}catch{toast('⚠ URL inválida');return;}
+  links.push({id:Date.now(),name:nm,url:sf,emoji:semoji});
+  save();renderLinks();closeModal();toast('✓ Acceso guardado');
+}
+function buildEP(){
+  const g=document.getElementById('ep');g.innerHTML='';
+  EMOJIS.forEach(em=>{
+    const b=document.createElement('button');
+    b.className='epb'+(em===semoji?' sel':'');b.textContent=em;b.type='button';
+    b.onclick=()=>{semoji=em;g.querySelectorAll('.epb').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');};
+    g.appendChild(b);
+  });
+}
+document.getElementById('overlay').addEventListener('click',e=>{if(e.target===document.getElementById('overlay'))closeModal();});
+
+function renderHabits(){
+  const td=new Date().toDateString();
+  if(stats.habDay!==td){habits.forEach(h=>h.done=false);stats.habDay=td;save();}
+  const el=document.getElementById('hlist');el.innerHTML='';
+  habits.forEach(h=>{
+    const r=document.createElement('div');r.className='hrow';
+    r.innerHTML='<span class="hlbl'+(h.done?' done':'')+'">'+esc(h.label)+'</span><div class="hck'+(h.done?' on':'')+'" onclick="togH('+h.id+')">'+(h.done?'✓':'')+'</div>';
+    el.appendChild(r);
+  });
+}
+function togH(id){const h=habits.find(x=>x.id===id);if(!h)return;h.done=!h.done;save();renderHabits();if(h.done)toast('✓ '+h.label);}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape')closeModal();
+  if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();openModal();}
+  if((e.ctrlKey||e.metaKey)&&e.key==='p'){e.preventDefault();togPomo();}
 });
 
-// ─── POMODORO ─────────────────────────────────────────────────
-function updatePomoDisplay() {
-  const m = Math.floor(pomoSeconds / 60);
-  const s = pomoSeconds % 60;
-  document.getElementById('pomo-display').textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+let ttm;
+function toast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.classList.add('on');
+  clearTimeout(ttm);ttm=setTimeout(()=>el.classList.remove('on'),3000);
 }
 
-function togglePomo() {
-  if (pomoRunning) {
-    clearInterval(pomoInterval);
-    pomoRunning = false;
-    document.getElementById('pomo-start-btn').textContent = '▶ Continuar';
-  } else {
-    pomoRunning = true;
-    document.getElementById('pomo-start-btn').textContent = '⏸ Pausar';
-    pomoInterval = setInterval(() => {
-      pomoSeconds--;
-      updatePomoDisplay();
-      if (pomoSeconds <= 0) {
-        clearInterval(pomoInterval);
-        pomoRunning = false;
-        if (pomoIsWork) {
-          stats.pomos++;
-          updatePomoDots();
-          updateStats();
-          localStorage.setItem('focus_stats', JSON.stringify(stats));
-          showToast('🎉 ¡Pomodoro completado! Toma un descanso.');
-          pomoIsWork = false;
-          pomoSeconds = 5 * 60;
-          document.getElementById('pomo-display').classList.replace('work-mode', 'break-mode');
-          document.getElementById('pomo-mode-label').textContent = 'Modo descanso';
-        } else {
-          showToast('💪 ¡Descanso terminado! A trabajar.');
-          pomoIsWork = true;
-          pomoSeconds = 25 * 60;
-          document.getElementById('pomo-display').classList.replace('break-mode', 'work-mode');
-          document.getElementById('pomo-mode-label').textContent = 'Modo trabajo';
-        }
-        updatePomoDisplay();
-        document.getElementById('pomo-start-btn').textContent = '▶ Iniciar';
-      }
-    }, 1000);
-  }
-}
-
-function resetPomo() {
-  clearInterval(pomoInterval);
-  pomoRunning = false;
-  pomoIsWork = true;
-  pomoSeconds = 25 * 60;
-  document.getElementById('pomo-display').textContent = '25:00';
-  document.getElementById('pomo-display').className = 'work-mode';
-  document.getElementById('pomo-mode-label').textContent = 'Modo trabajo';
-  document.getElementById('pomo-start-btn').textContent = '▶ Iniciar';
-}
-
-function updatePomoDots() {
-  const dots = document.querySelectorAll('.pomo-dot');
-  const count = stats.pomos % 4;
-  dots.forEach((d, i) => d.classList.toggle('filled', i < count || (count === 0 && stats.pomos > 0 && i < 4)));
-}
-
-// ─── STATS ────────────────────────────────────────────────────
-function updateStats() {
-  document.getElementById('stat-pomos').textContent = stats.pomos;
-  document.getElementById('stat-streak').textContent = stats.streak + 'd';
-}
-
-// Streak check
-function checkStreak() {
-  const today = new Date().toDateString();
-  if (stats.lastDay !== today) {
-    const yesterday = new Date(Date.now() - 86400000).toDateString();
-    if (stats.lastDay === yesterday) stats.streak++;
-    else if (stats.lastDay !== today) stats.streak = 1;
-    stats.lastDay = today;
-    localStorage.setItem('focus_stats', JSON.stringify(stats));
-  }
-}
-
-// ─── TOAST ────────────────────────────────────────────────────
-let toastTimer;
-function showToast(msg) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
-}
-
-// ─── KEYBOARD SHORTCUT ────────────────────────────────────────
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') closeModal();
-  if (e.key === 'n' && e.ctrlKey) { e.preventDefault(); openModal(); }
-});
-
-// ─── INIT ─────────────────────────────────────────────────────
-function init() {
-  checkStreak();
-  updateStats();
-  renderLinks();
-  renderEmojis();
-  showFocusTask();
-  updatePomoDisplay();
-}
-
-init();
+(function init(){
+  chkStreak();save();
+  renderStats();renderLinks();renderHabits();renderTask();renderPomo();buildEP();
+  // Trigger reveals after brief paint delay
+  setTimeout(runReveal,60);
+  // Hard fallback: force visible after 1.5s
+  setTimeout(()=>{
+    document.querySelectorAll('.rz:not(.in)').forEach(el=>{el.style.opacity='1';el.style.transform='none';});
+  },1500);
+})();
 </script>
 </body>
 </html>

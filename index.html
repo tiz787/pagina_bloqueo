@@ -122,7 +122,13 @@ header{grid-area:hd;display:flex;align-items:center;justify-content:space-betwee
 .ai-icon{width:30px;height:30px;border-radius:8px;background:var(--aiS);border:1px solid rgba(124,92,191,0.3);
   display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0}
 .ai-title{font-size:.62rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--ai2);flex:1}
+.ai-head-right{display:flex;align-items:center;gap:8px}
 .ai-status{font-size:.58rem;color:var(--muted);font-style:italic}
+.ai-clear{height:24px;padding:0 9px;border-radius:999px;background:rgba(124,92,191,0.1);
+  border:1px solid rgba(124,92,191,0.28);color:var(--ai2);cursor:pointer;font-size:.58rem;
+  font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-family:var(--ffb);
+  transition:all var(--tr)}
+.ai-clear:hover{background:rgba(124,92,191,0.25);border-color:rgba(124,92,191,0.45)}
 .ai-chat{max-height:280px;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
 .ai-chat::-webkit-scrollbar{width:3px}
 .ai-chat::-webkit-scrollbar-thumb{background:rgba(124,92,191,0.3);border-radius:2px}
@@ -382,7 +388,10 @@ footer{grid-area:ft;display:flex;align-items:center;justify-content:space-betwee
         <div class="ai-header">
           <div class="ai-icon">✦</div>
           <div class="ai-title">DeepSeek Coach</div>
-          <div class="ai-status" id="ai-status">sin clave — ve a ⚙</div>
+          <div class="ai-head-right">
+            <div class="ai-status" id="ai-status">sin clave — ve a ⚙</div>
+            <button class="ai-clear" onclick="clearAiChat()" title="Borrar historial del chat">Limpiar</button>
+          </div>
         </div>
         <div class="ai-chat" id="ai-chat">
           <div class="ai-empty" id="ai-empty">
@@ -779,7 +788,7 @@ Tu rol:
 - Eres conciso: máximo 3-4 oraciones por respuesta a menos que pidan más detalle
 - No usas bullet points a menos que el usuario los pida explícitamente
 - Si el usuario no sabe por dónde empezar, pregunta UNA sola cosa concreta
-- Si el usuario adjunta imágenes, aclara con honestidad que en esta versión no puedes verlas y pide una breve descripción`;
+- Si el usuario adjunta imágenes, enfócate en ayudar con su objetivo y, si falta contexto, pide una descripción breve en una sola pregunta`;
 }
 
 function formatMsgHtml(text){
@@ -999,6 +1008,21 @@ async function sendMsg(){
 function sendQuick(txt){
   document.getElementById('ai-inp').value=txt;
   sendMsg();
+}
+
+function clearAiChat(){
+  if(!confirm('¿Quieres limpiar toda la conversación del chat?'))return;
+  aiHistory=[];
+  aiChatCache=[];
+  aiPendingImages=[];
+  localStorage.removeItem('ft_ai_history');
+  localStorage.removeItem('ft_ai_chat');
+  document.querySelectorAll('#ai-chat .msg').forEach(n=>n.remove());
+  renderPendingImages();
+  updateAiStatus();
+  document.getElementById('ai-empty').style.display='block';
+  document.getElementById('ai-inp').value='';
+  toast('🧹 Chat limpiado');
 }
 
 document.getElementById('ai-inp').addEventListener('keydown',e=>{

@@ -134,9 +134,25 @@ header{grid-area:hd;display:flex;align-items:center;justify-content:space-betwee
   align-self:flex-end;color:var(--cream)}
 .msg.ai{background:var(--aiS);border:1px solid rgba(124,92,191,0.18);
   align-self:flex-start;color:var(--cream)}
+.msg-images{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+.msg-images img{width:110px;height:82px;object-fit:cover;border-radius:8px;
+  border:1px solid rgba(124,92,191,0.24);background:var(--ink2)}
 .msg.ai em{color:var(--ai2);font-style:normal;font-weight:600}
 .msg-thinking{opacity:.5;font-style:italic;color:var(--ai2)}
+.ai-files{display:none;padding:10px 12px 0;gap:8px;flex-wrap:wrap}
+.ai-file-chip{position:relative;width:52px;height:52px;border-radius:10px;overflow:hidden;
+  border:1px solid rgba(124,92,191,0.28);background:rgba(124,92,191,0.09)}
+.ai-file-chip img{width:100%;height:100%;object-fit:cover}
+.ai-file-rm{position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:5px;
+  background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.16);color:#fff;
+  cursor:pointer;font-size:.55rem;display:flex;align-items:center;justify-content:center}
 .ai-input-row{padding:12px;border-top:1px solid rgba(124,92,191,0.12);display:flex;gap:8px}
+.ai-upload{width:38px;height:38px;border-radius:var(--r);background:rgba(124,92,191,0.12);
+  border:1px solid rgba(124,92,191,0.25);color:var(--ai2);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:.88rem;
+  transition:all var(--tr);flex-shrink:0}
+.ai-upload:hover:not(:disabled){background:rgba(124,92,191,0.28)}
+.ai-upload:disabled{opacity:.35;cursor:not-allowed}
 .ai-inp{flex:1;background:rgba(124,92,191,0.07);border:1px solid rgba(124,92,191,0.2);
   border-radius:var(--r);padding:10px 13px;color:var(--cream);font-family:var(--ffb);
   font-size:.82rem;outline:none;transition:border-color var(--tr)}
@@ -381,8 +397,11 @@ footer{grid-area:ft;display:flex;align-items:center;justify-content:space-betwee
           <button class="qp" onclick="sendQuick('Dime una técnica rápida para concentrarme ahora mismo')">⚡ Concentración rápida</button>
           <button class="qp" onclick="sendQuick('Me siento bloqueado y sin motivación')">🧱 Estoy bloqueado</button>
         </div>
+        <div class="ai-files" id="ai-files"></div>
         <div class="ai-input-row">
-          <input class="ai-inp" id="ai-inp" type="text" placeholder="Escríbeme... (Enter para enviar)" maxlength="500"/>
+          <input id="ai-file" type="file" accept="image/*" multiple hidden>
+          <button class="ai-upload" id="ai-upload-btn" onclick="triggerImageUpload()" title="Subir fotos">🖼</button>
+          <input class="ai-inp" id="ai-inp" type="text" placeholder="Escríbeme... (Enter para enviar)"/>
           <button class="ai-send" id="ai-send-btn" onclick="sendMsg()" title="Enviar">↑</button>
         </div>
       </div>
@@ -533,7 +552,11 @@ let habits=lsG('ft_habits')||DEF_H;
 let ftask=localStorage.getItem('ft_task')||'';
 let semoji='🔗';
 let ps=25*60,pw=true,pr=false,pint=null;
-let aiHistory=[];
+const cachedAiHistory=lsG('ft_ai_history');
+const cachedAiChat=lsG('ft_ai_chat');
+let aiHistory=Array.isArray(cachedAiHistory)?cachedAiHistory:[];
+let aiChatCache=Array.isArray(cachedAiChat)?cachedAiChat:[];
+let aiPendingImages=[];
 let aiLoading=false;
 
 function lsG(k){try{return JSON.parse(localStorage.getItem(k));}catch{return null;}}
@@ -542,6 +565,27 @@ function save(){
   localStorage.setItem('ft_stats',JSON.stringify(stats));
   localStorage.setItem('ft_habits',JSON.stringify(habits));
   localStorage.setItem('ft_task',ftask);
+}
+function trimAiCache(){
+  if(aiHistory.length>20) aiHistory=aiHistory.slice(-20);
+  if(aiChatCache.length>40) aiChatCache=aiChatCache.slice(-40);
+}
+function saveAiCache(){
+  trimAiCache();
+  try{
+    localStorage.setItem('ft_ai_history',JSON.stringify(aiHistory));
+    localStorage.setItem('ft_ai_chat',JSON.stringify(aiChatCache));
+  }catch{
+    // If localStorage quota is reached, remove oldest chat messages and retry.
+    while(aiChatCache.length){
+      aiChatCache.shift();
+      try{
+        localStorage.setItem('ft_ai_history',JSON.stringify(aiHistory));
+        localStorage.setItem('ft_ai_chat',JSON.stringify(aiChatCache));
+        break;
+      }catch{}
+    }
+  }
 }
 
 // ═══════════════════════════════════════════
@@ -734,14 +778,151 @@ Tu rol:
 - Sugieres usar pomodoros (25 min trabajo / 5 min descanso)
 - Eres conciso: máximo 3-4 oraciones por respuesta a menos que pidan más detalle
 - No usas bullet points a menos que el usuario los pida explícitamente
-- Si el usuario no sabe por dónde empezar, pregunta UNA sola cosa concreta`;
+- Si el usuario no sabe por dónde empezar, pregunta UNA sola cosa concreta
+- Si el usuario adjunta imágenes, aclara con honestidad que en esta versión no puedes verlas y pide una breve descripción`;
 }
 
-async function callDeepSeek(userMsg){
+function formatMsgHtml(text){
+  return esc(text).replace(/\*\*(.*?)\*\*/g,'<em>$1</em>').replace(/\n/g,'<br>');
+}
+
+function renderPendingImages(){
+  const box=document.getElementById('ai-files');
+  box.innerHTML='';
+  if(!aiPendingImages.length){box.style.display='none';return;}
+  box.style.display='flex';
+  aiPendingImages.forEach((img,idx)=>{
+    const chip=document.createElement('div');
+    chip.className='ai-file-chip';
+    chip.innerHTML='<img src="'+img.data+'" alt="'+esc(img.name||'imagen')+'"><button class="ai-file-rm" type="button" onclick="removePendingImage('+idx+')">✕</button>';
+    box.appendChild(chip);
+  });
+}
+
+function removePendingImage(idx){
+  aiPendingImages.splice(idx,1);
+  renderPendingImages();
+}
+
+function triggerImageUpload(){
+  if(aiLoading)return;
+  document.getElementById('ai-file').click();
+}
+
+function readFileAsDataUrl(file){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=()=>resolve(reader.result);
+    reader.onerror=()=>reject(new Error('No se pudo leer la imagen.'));
+    reader.readAsDataURL(file);
+  });
+}
+
+function compressImageDataUrl(dataUrl){
+  return new Promise(resolve=>{
+    const img=new Image();
+    img.onload=()=>{
+      const maxSide=1200;
+      const scale=Math.min(1,maxSide/Math.max(img.width,img.height));
+      const w=Math.max(1,Math.round(img.width*scale));
+      const h=Math.max(1,Math.round(img.height*scale));
+      const canvas=document.createElement('canvas');
+      canvas.width=w;canvas.height=h;
+      const ctx=canvas.getContext('2d');
+      ctx.drawImage(img,0,0,w,h);
+      resolve(canvas.toDataURL('image/jpeg',0.82));
+    };
+    img.onerror=()=>resolve(dataUrl);
+    img.src=dataUrl;
+  });
+}
+
+async function handleImagePick(e){
+  const files=[...(e.target.files||[])].filter(f=>f.type.startsWith('image/'));
+  e.target.value='';
+  if(!files.length)return;
+  const btn=document.getElementById('ai-upload-btn');
+  btn.disabled=true;
+  try{
+    for(const file of files){
+      const raw=await readFileAsDataUrl(file);
+      const compressed=await compressImageDataUrl(raw);
+      aiPendingImages.push({name:file.name,data:compressed});
+    }
+    renderPendingImages();
+    toast('🖼 '+files.length+' imagen(es) lista(s) para enviar');
+  }catch{
+    toast('⚠ No se pudo cargar la imagen');
+  }finally{
+    btn.disabled=false;
+  }
+}
+
+function addThinkingMsg(){
+  const el=document.getElementById('ai-empty');
+  if(el) el.style.display='none';
+  const chat=document.getElementById('ai-chat');
+  const div=document.createElement('div');
+  div.className='msg ai msg-thinking';
+  div.textContent='pensando…';
+  chat.appendChild(div);
+  chat.scrollTop=chat.scrollHeight;
+  return div;
+}
+
+function renderChatMessage(msg,persist=true){
+  const el=document.getElementById('ai-empty');
+  if(el) el.style.display='none';
+  const chat=document.getElementById('ai-chat');
+  const div=document.createElement('div');
+  div.className='msg '+(msg.role||'ai');
+  if(msg.type==='image'){
+    const parts=[];
+    if(msg.text) parts.push('<div>'+formatMsgHtml(msg.text)+'</div>');
+    const imgs=(msg.images||[]).map(img=>'<img src="'+img.data+'" alt="'+esc(img.name||'imagen')+'">').join('');
+    if(imgs) parts.push('<div class="msg-images">'+imgs+'</div>');
+    div.innerHTML=parts.join('');
+  }else{
+    div.innerHTML=formatMsgHtml(msg.text||'');
+  }
+  chat.appendChild(div);
+  chat.scrollTop=chat.scrollHeight;
+  if(persist){
+    aiChatCache.push(msg);
+    saveAiCache();
+  }
+  return div;
+}
+
+function addTextMsg(text,role){
+  return renderChatMessage({type:'text',role,text,ts:Date.now()},true);
+}
+
+function addImageMsg(images,role,text=''){
+  const safeImages=images
+    .filter(img=>img&&img.data)
+    .map(img=>({name:img.name||'imagen',data:img.data}));
+  if(!safeImages.length)return addTextMsg(text||'[imagen]',role);
+  return renderChatMessage({type:'image',role,text,images:safeImages,ts:Date.now()},true);
+}
+
+function restoreAiChatFromCache(){
+  if(!aiChatCache.length)return;
+  const chat=document.getElementById('ai-chat');
+  chat.querySelectorAll('.msg').forEach(n=>n.remove());
+  aiChatCache.forEach(msg=>renderChatMessage(msg,false));
+}
+
+async function callDeepSeek(userMsg,imageCount=0){
   const key=getApiKey();
   if(!key) return null;
+
+  const cleanMsg=(userMsg||'').trim();
+  const imgNote=imageCount?`[El usuario adjuntó ${imageCount} imagen(es) en el chat.]`:'';
+  const composedMsg=cleanMsg&&imgNote?cleanMsg+'\n\n'+imgNote:(cleanMsg||imgNote);
   
-  aiHistory.push({role:'user',content:userMsg});
+  aiHistory.push({role:'user',content:composedMsg});
+  saveAiCache();
   
   // Keep history to last 10 turns to avoid token bloat
   const recentHistory=aiHistory.slice(-10);
@@ -770,51 +951,47 @@ async function callDeepSeek(userMsg){
   const data=await resp.json();
   const reply=data.choices?.[0]?.message?.content||'Sin respuesta.';
   aiHistory.push({role:'assistant',content:reply});
+  saveAiCache();
   return reply;
-}
-
-function addMsg(text,role){
-  const el=document.getElementById('ai-empty');
-  if(el) el.style.display='none';
-  const chat=document.getElementById('ai-chat');
-  const div=document.createElement('div');
-  div.className='msg '+role;
-  // Render **bold** markdown simply
-  div.innerHTML=text.replace(/\*\*(.*?)\*\*/g,'<em>$1</em>').replace(/\n/g,'<br>');
-  chat.appendChild(div);
-  chat.scrollTop=chat.scrollHeight;
-  return div;
 }
 
 async function sendMsg(){
   if(aiLoading)return;
   const inp=document.getElementById('ai-inp');
   const txt=inp.value.trim();
-  if(!txt)return;
+  const hasImages=aiPendingImages.length>0;
+  if(!txt&&!hasImages)return;
   
   if(!getApiKey()){
     toast('⚙ Configura tu clave DeepSeek primero');
     openCfg();
     return;
   }
+
+  const outgoingImages=aiPendingImages.map(img=>({name:img.name,data:img.data}));
   
   inp.value='';
-  addMsg(txt,'user');
+  aiPendingImages=[];
+  renderPendingImages();
+  if(outgoingImages.length)addImageMsg(outgoingImages,'user',txt);
+  else addTextMsg(txt,'user');
   
   aiLoading=true;
   document.getElementById('ai-send-btn').disabled=true;
-  const thinking=addMsg('pensando…','ai msg-thinking');
+  document.getElementById('ai-upload-btn').disabled=true;
+  const thinking=addThinkingMsg();
   
   try{
-    const reply=await callDeepSeek(txt);
+    const reply=await callDeepSeek(txt,outgoingImages.length);
     thinking.remove();
-    addMsg(reply,'ai');
+    addTextMsg(reply,'ai');
   }catch(err){
     thinking.remove();
-    addMsg('⚠ Error: '+err.message+'. Verifica tu clave en ⚙','ai');
+    addTextMsg('⚠ Error: '+err.message+'. Verifica tu clave en ⚙','ai');
   }finally{
     aiLoading=false;
     document.getElementById('ai-send-btn').disabled=false;
+    document.getElementById('ai-upload-btn').disabled=false;
     inp.focus();
   }
 }
@@ -827,6 +1004,7 @@ function sendQuick(txt){
 document.getElementById('ai-inp').addEventListener('keydown',e=>{
   if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}
 });
+document.getElementById('ai-file').addEventListener('change',handleImagePick);
 
 // ═══════════════════════════════════════════
 // CONFIG MODAL
@@ -896,6 +1074,8 @@ function toast(msg){
 (function init(){
   chkStreak();save();
   renderStats();renderLinks();renderHabits();renderTask();renderPomo();buildEP();
+  restoreAiChatFromCache();
+  renderPendingImages();
   updateAiStatus();
   setTimeout(runReveal,60);
   setTimeout(()=>{
